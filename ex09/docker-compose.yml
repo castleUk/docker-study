@@ -1,0 +1,46 @@
+version: '3'
+services:
+  db:
+    build:
+      context: ./db #빌드시 Dockerfile의 기준 컨텍스트를 잡아줘야함, 경로설정을 위해서
+      dockerfile: Dockerfile 
+    ports:
+      - 3306:3306
+    volumes:
+      - ./db/store:/var/lib/mysql
+    networks:
+      - network
+  
+  backend:
+    build:
+      context: ./product
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - db #db 서비스가 실행되고나면 server가 실행된다
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/metadb?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_DRIVER: com.mysql.cj.jdbc.Driver
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root1234
+    networks:
+      - network
+
+  frontend:
+    build:
+      context: ./my-app
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 80:80
+    depends_on:
+      - backend #backend 서비스가 실행되고나면 frontend 실행된다
+    networks:
+      - network
+
+networks:
+  network:
+
+
